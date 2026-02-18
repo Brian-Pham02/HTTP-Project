@@ -71,7 +71,12 @@ public class HTTPResponse {
         json.put("body", body);
         send("200 OK", json.toJSONString());
     }
-    
+
+    /**
+     * Writes a Not Allowed message to the stream.
+     * 
+     * @throws IOException Failed to write content due to an IO error
+     */
     public void sendNotAllowed() throws IOException {
         send("405 Method Not Allowed", "405 Method Not Allowed");
     }
