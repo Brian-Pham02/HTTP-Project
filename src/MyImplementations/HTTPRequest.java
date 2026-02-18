@@ -1,6 +1,7 @@
 package MyImplementations;
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,8 @@ import java.util.Map;
  */
 public class HTTPRequest {
     // The request method, path, version, and body
-    private String method, path, version, body;
+    private String method, version, body;
+    private String[] paths;
 
     // The headers map
     private Map<String, String> headers;
@@ -48,7 +50,6 @@ public class HTTPRequest {
         // The request line is invalid.
         if(requestLine == null || requestLine.split(" ").length < 2) {
             method = "INVALID";
-            path = "";
             return;
         }   
 
@@ -58,7 +59,7 @@ public class HTTPRequest {
         // - Version: HTTP version used
         String[] parts = requestLine.split(" ");
         method = parts[0];
-        path = parts[1];
+        paths = parts[1].split("(?=\\/)");
         version = parts[2];
 
         String line;
@@ -84,7 +85,7 @@ public class HTTPRequest {
 
         // Output to the console
         System.out.println("Method: " + method);
-        System.out.println("Path: " + path);
+        System.out.println("Paths: " + Arrays.toString(paths));
         System.out.println("Version: " + version);
         System.out.println("Body: " + body);
         System.out.println("Headers:");
@@ -103,8 +104,8 @@ public class HTTPRequest {
     /**
      * @return The resource path
      */
-    public String getPath() { 
-        return path; 
+    public String[] getPaths() { 
+        return paths; 
     }
 
     /**

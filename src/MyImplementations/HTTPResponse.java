@@ -1,5 +1,6 @@
 package MyImplementations;
 import java.net.*;
+import java.util.Arrays;
 import java.io.*;
 import org.json.simple.JSONObject;
 
@@ -50,9 +51,9 @@ public class HTTPResponse {
      * @throws IOException Failed to write the content due to an IO error
      */
     @SuppressWarnings("unchecked")
-    public void sendJSON(String message, String path) throws IOException {
+    public void sendJSON(String message, String[] paths) throws IOException {
         json.put("message", message);
-        json.put("path", path);
+        json.put("paths", Arrays.toString(paths));
         send("200 OK", json.toJSONString());
     }
 
@@ -65,9 +66,9 @@ public class HTTPResponse {
      * @throws IOException Failed to write the content due to an IO error
      */
     @SuppressWarnings("unchecked")
-    public void sendJSON(String message, String path, JSONObject body) throws IOException {
+    public void sendJSON(String message, String[] paths, JSONObject body) throws IOException {
         json.put("message", message);
-        json.put("path", path);
+        json.put("paths", Arrays.toString(paths));
         json.put("body", body);
         send("200 OK", json.toJSONString());
     }

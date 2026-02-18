@@ -91,18 +91,18 @@ public class Server {
 
             switch (request.getMethod()) {
                 case "GET": 
-                    response.sendJSON("GET request received!", request.getPath()); 
+                    response.sendJSON("GET request received!", request.getPaths()); 
                     break;
                 case "POST": 
-                    response.sendJSON("POST request received!", request.getPath(), requestBody); 
+                    response.sendJSON("POST request received!", request.getPaths(), requestBody); 
                     break;
                 case "PUT": 
-                    response.sendJSON("PUT request received!", request.getPath(), requestBody); 
+                    response.sendJSON("PUT request received!", request.getPaths(), requestBody); 
                     break;
                 case "PATCH": 
-                    response.sendJSON("PATCH request received!", request.getPath(), requestBody); 
+                    response.sendJSON("PATCH request received!", request.getPaths(), requestBody); 
                     break;
-                case "DELETE": response.sendJSON("DELETE request received!", request.getPath()); break;
+                case "DELETE": response.sendJSON("DELETE request received!", request.getPaths()); break;
                 default: response.sendNotAllowed();
             }
 
