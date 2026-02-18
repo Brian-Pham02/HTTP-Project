@@ -15,10 +15,8 @@ import org.json.simple.JSONObject;
  * server works under the hood.
  */
 public class Server {
-    // Initialize socket and input stream
+    // ServerSocket to receive client connection
     private ServerSocket serverSocket = null;
-    JSONObject json;
-
 
     /**
      * Server(int port)
@@ -45,7 +43,7 @@ public class Server {
             // Set up the server on the specified port
             serverSocket = new ServerSocket(port);
             System.out.printf("Server started on port %d\n", port);
-            json = new JSONObject();
+
             
             // Indicate that the server is waiting for a client connection
             System.out.println("Waiting for a client...");    
@@ -63,6 +61,12 @@ public class Server {
         }
     }
 
+    /**
+     * Handles the client request and delivers the appropriate
+     * response based on the given request method.
+     * 
+     * @param client The Socket object representing the client performing the request
+     */
     private void handleClient(Socket client) {
         try {
             // Parse the request

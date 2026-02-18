@@ -20,7 +20,9 @@ default: classes
 
 # Compile all Java files into bin/
 classes: $(BIN_DIR)
-	$(JC) $(JFLAGS) -cp "$(JAR_DEPS)" -d $(BIN_DIR) $(SRCS)
+	@echo "Compiling Java sources..." 
+	@$(JC) $(JFLAGS) -cp "$(JAR_DEPS)" -d $(BIN_DIR) $(SRCS) 
+	@echo "Compilation done." 
 
 # Create bin directory if it doesn't exist
 $(BIN_DIR):
