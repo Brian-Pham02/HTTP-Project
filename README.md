@@ -21,7 +21,7 @@ receives a request and sends back a response.
 #### With a Makefile
 
 * Run the makefile using 'make'. You will need to install GNU make if you are on a Windows platform
-* In one terminal: 'make run-http'
+* Run using 'make run-http'
 
 ## License
 
