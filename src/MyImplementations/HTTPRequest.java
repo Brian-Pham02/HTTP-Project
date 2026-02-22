@@ -3,7 +3,11 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * HTTPResponse.java
@@ -21,6 +25,10 @@ public class HTTPRequest {
 
     // The headers map
     private Map<String, String> headers;
+
+    private Map<String, Set<String>> queries;
+
+    private final String queryPattern = "[?&]([^=]+)(=([^&#]*))?";
 
     /**
      * Constructor for the HTTPRequest class
@@ -43,6 +51,7 @@ public class HTTPRequest {
         // Initialize a HashMap object to store in the key-value
         // data of a HTTP headers.
         headers = new HashMap<String, String>();
+        queries = new HashMap<String, Set<String>>();
 
         // Reads the BufferedReader object for the request object
         String requestLine = br.readLine();
@@ -59,7 +68,25 @@ public class HTTPRequest {
         // - Version: HTTP version used
         String[] parts = requestLine.split(" ");
         method = parts[0];
-        paths = parts[1].split("(?=\\/)");
+
+        String fullPath = parts[1];
+
+        // Separate path and query string
+        String pathOnly;
+        int queryIndex = fullPath.indexOf("?");
+
+        if (queryIndex >= 0) {
+            pathOnly = fullPath.substring(0, queryIndex);
+        } else {
+            pathOnly = fullPath;
+        }
+
+        // Build query parameters from full URL
+        buildQueryParameters(fullPath);
+
+        // Now split only the clean path
+        paths = pathOnly.split("(?=\\/)");
+
         version = parts[2];
 
         String line;
@@ -88,10 +115,20 @@ public class HTTPRequest {
         System.out.println("Paths: " + Arrays.toString(paths));
         System.out.println("Version: " + version);
         System.out.println("Body: " + body);
-        System.out.println("Headers:");
-        headers.forEach((key, value) -> {
-            System.out.printf("\t%s -> %s\n", key, value);
-        });
+
+        if(headers != null) {
+            System.out.println("Headers:");
+            headers.forEach((key, value) -> {
+                System.out.printf("\t%s -> %s\n", key, value);
+            });
+        }
+        
+        if(!queries.isEmpty()) {
+            System.out.println("Query Parameters:");
+            queries.forEach((key, value) -> {   
+                System.out.printf("\t%s -> %s\n", key, value);
+            });
+        }
     }
 
     /**
@@ -127,5 +164,40 @@ public class HTTPRequest {
      */
     public Map<String, String> getHeaders() { 
         return headers; 
+    }
+
+    /**
+     * @return The query parameters map
+     */
+    public Map<String, Set<String>> getQueryParameters() {
+        return queries;
+    }
+
+    /**
+     * Extracts the query parameters using regex and builds a 
+     * queries HashMap object representing the query paramters
+     * and its values.
+     * 
+     * @param url the HTTP resource path
+     */
+    private void buildQueryParameters(String url) {
+        if (url == null || !url.contains("?")) {
+            return;
+        }
+
+        Pattern regex = Pattern.compile(queryPattern);
+        Matcher matcher = regex.matcher(url);
+
+        while (matcher.find()) {
+            String queryPart = matcher.group().substring(1);
+            String[] queryStrings = queryPart.split("=", 2);
+
+            String key = queryStrings[0];
+            String value = queryStrings.length > 1 ? queryStrings[1] : "";
+
+            queries
+            .computeIfAbsent(key, k -> new HashSet<>())
+            .add(value.toString());
+        }
     }
 }

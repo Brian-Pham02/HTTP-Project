@@ -1,6 +1,10 @@
 package MyImplementations;
 import java.net.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import java.io.*;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
@@ -44,10 +48,8 @@ public class Server {
             serverSocket = new ServerSocket(port);
             System.out.printf("Server started on port %d\n", port);
 
-            
             // Indicate that the server is waiting for a client connection
             System.out.println("Waiting for a client...");    
-            
 
             while(true) {
                 Socket client = serverSocket.accept();
@@ -67,6 +69,7 @@ public class Server {
      * 
      * @param client The Socket object representing the client performing the request
      */
+    @SuppressWarnings("unchecked")
     private void handleClient(Socket client) {
         try {
             // Parse the request
@@ -75,39 +78,86 @@ public class Server {
             // Prepare response
             HTTPResponse response = new HTTPResponse(client);
 
-            // Only parse body for methods that can have one
-            JSONObject requestBody = null;
             String method = request.getMethod();
-            if (method.equals("POST") || method.equals("PUT") || method.equals("PATCH")) {
-                String rawBody = request.getBody();
-                if(rawBody != null && !rawBody.isEmpty()) {
+            String[] paths = request.getPaths();
+
+            Map<String, Set<String>> queryParams = request.getQueryParameters();
+            Map<String, String> headers = request.getHeaders();
+
+            // Parse body if applicable
+            String requestBodyString = request.getBody();
+            JSONObject requestBody = null;
+
+            if ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method)) {
+                if (requestBodyString != null && !requestBodyString.isEmpty()) {
                     try {
-                        requestBody = (JSONObject) new org.json.simple.parser.JSONParser().parse(rawBody);
+                        requestBody = (JSONObject) new org.json.simple.parser.JSONParser()
+                            .parse(requestBodyString);
                     } catch (org.json.simple.parser.ParseException e) {
-                        requestBody = new JSONObject(); // empty JSON if parse fails
+                        // Use sendError with ERROR_MAP for bad JSON
+                        response.sendError(400, "Invalid JSON body");
+                        client.close();
+                        return;
                     }
                 }
             }
 
-            switch (request.getMethod()) {
-                case "GET": 
-                    response.sendJSON("GET request received!", request.getPaths()); 
+            JSONObject responseBody = new JSONObject();
+
+            responseBody.put("message", method + " request received!");
+
+            // Add path segments
+            JSONArray pathArray = new JSONArray();
+            if (paths != null) {
+                pathArray.addAll(Arrays.asList(paths));
+            }
+            responseBody.put("paths", pathArray);
+
+            // Add query params
+            if(!queryParams.isEmpty()) {
+                JSONObject queryObject = new JSONObject();
+                queryParams.forEach((key, valueSet) -> {
+                    JSONArray arr = new JSONArray();
+                    arr.addAll(valueSet);
+                    queryObject.put(key, arr);
+                });
+                responseBody.put("queryParams", queryObject);
+            }
+            
+
+            // Add header content
+            JSONObject headerObject = new JSONObject();
+            headers.forEach((key, value) -> {
+                headerObject.put(key, value);
+            });
+            responseBody.put("headers", headerObject);
+
+
+            // Add body if applicable
+            if (requestBody != null) {
+                responseBody.put("body", requestBody);
+            }
+
+            // Handle request methods
+            switch (method) {
+                case "GET":
+                case "DELETE":
+                case "POST":
+                case "PUT":
+                case "PATCH":
+                    response.sendResponse(
+                        200,
+                        responseBody
+                    );
                     break;
-                case "POST": 
-                    response.sendJSON("POST request received!", request.getPaths(), requestBody); 
-                    break;
-                case "PUT": 
-                    response.sendJSON("PUT request received!", request.getPaths(), requestBody); 
-                    break;
-                case "PATCH": 
-                    response.sendJSON("PATCH request received!", request.getPaths(), requestBody); 
-                    break;
-                case "DELETE": response.sendJSON("DELETE request received!", request.getPaths()); break;
-                default: response.sendNotAllowed();
+
+                default:
+                    response.sendError(405, "Method Not Allowed");
             }
 
             client.close();
-        } catch(IOException e) {
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

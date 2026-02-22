@@ -1,6 +1,7 @@
 package MyImplementations;
 import java.net.*;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.io.*;
 import org.json.simple.JSONObject;
 
@@ -18,9 +19,24 @@ public class HTTPResponse {
     // and the HTTP content.
     private BufferedWriter bw; 
 
-    // JSONObject object to write the JSON object data in the API
-    // response.
-    private JSONObject json;
+    private static final Map<Integer, String> ERROR_MAP;
+    static {
+        ERROR_MAP = new HashMap<Integer, String>();
+        ERROR_MAP.put(400, "400 Bad Request");
+        ERROR_MAP.put(401, "401 Unauthorized");
+        ERROR_MAP.put(403, "403 Forbidden");
+        ERROR_MAP.put(404, "404 Not Found");
+        ERROR_MAP.put(405, "405 Method Not Allowed");
+        ERROR_MAP.put(500, "500 Internal Server Error");
+    }
+
+    private static final Map<Integer, String> SUCCESS_MAP;
+    static {
+        SUCCESS_MAP = new HashMap<Integer, String>();
+        SUCCESS_MAP.put(200, "200 OK");
+        SUCCESS_MAP.put(201, "201 Created");
+        SUCCESS_MAP.put(204, "204 No Content");
+    }
 
     /**
      * Constructor for the HTTPResponse class
@@ -38,48 +54,28 @@ public class HTTPResponse {
         bw = new BufferedWriter(
             new OutputStreamWriter(socket.getOutputStream())
         );
-
-        // Initialize a JSONObject object to deliver a JSON body response
-        json = new JSONObject();
     }
 
-    /**
-     * Writes the message and path to a JSON object.
-     * 
-     * @param message The message in the response
-     * @param path The resource path in the response
-     * @throws IOException Failed to write the content due to an IO error
-     */
     @SuppressWarnings("unchecked")
-    public void sendJSON(String message, String[] paths) throws IOException {
-        json.put("message", message);
-        json.put("paths", Arrays.toString(paths));
-        send("200 OK", json.toJSONString());
+    public void sendResponse(int statusCode, JSONObject response) throws IOException {
+        if(!SUCCESS_MAP.containsKey(statusCode)) {
+            throw new Error("Status code " + statusCode + " does not exist!");
+        }
+        
+        response.put("response", SUCCESS_MAP.get(statusCode));
+        send(SUCCESS_MAP.get(statusCode), response.toJSONString());
     }
 
-    /**
-     * Writes the message and path to a JSON object.
-     * 
-     * @param message The message in the response
-     * @param path The resource path in the response
-     * @param body The request body delivered to the response
-     * @throws IOException Failed to write the content due to an IO error
-     */
     @SuppressWarnings("unchecked")
-    public void sendJSON(String message, String[] paths, JSONObject body) throws IOException {
-        json.put("message", message);
-        json.put("paths", Arrays.toString(paths));
-        json.put("body", body);
-        send("200 OK", json.toJSONString());
-    }
-
-    /**
-     * Writes a Not Allowed message to the stream.
-     * 
-     * @throws IOException Failed to write content due to an IO error
-     */
-    public void sendNotAllowed() throws IOException {
-        send("405 Method Not Allowed", "405 Method Not Allowed");
+    public void sendError(int statusCode, String message) throws IOException {
+        if(!ERROR_MAP.containsKey(statusCode)) {
+            throw new Error("Status code " + statusCode + " does not exist!");
+        }
+        JSONObject errorJson = new JSONObject();
+        errorJson.put("status", statusCode);
+        errorJson.put("error", ERROR_MAP.get(statusCode));
+        errorJson.put("message", message);
+        send(ERROR_MAP.get(statusCode), errorJson.toJSONString());
     }
 
     /**
@@ -97,6 +93,5 @@ public class HTTPResponse {
         bw.write("\r\n");
         bw.write(body);
         bw.flush();
-        json.clear();
     }
 }
