@@ -1,18 +1,32 @@
+# HTTP Server Application 
+
+## Description
+
+A barebones HTTP Server application using TCP connection to simulate an HTTP server that
+receives a request and sends back a response. 
+
 ## Getting Started
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+### Prerequisites
 
-## Folder Structure
+* Java Version 21
 
-The workspace contains two folders by default, where:
+### Running the Application
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+#### Without a Makefile
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+* Compile the script using 'javac *.java'
+* Run using 'java Server'
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+#### With a Makefile
 
-## Dependency Management
+* Run the makefile using 'make'. You will need to install GNU make if you are on a Windows platform
+* In one terminal: 'make run-http'
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+## License
+
+MIT License
+
+## Acknowledgements
+
+* Brian Pham
